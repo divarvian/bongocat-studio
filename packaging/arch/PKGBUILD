@@ -1,0 +1,31 @@
+# Maintainer: Arvian
+pkgname=bongocat-studio
+pkgver=0.1.0
+pkgrel=1
+pkgdesc='Pure Rust desktop control center and built-in OBS Browser Source server for Bongo Cat'
+arch=('x86_64' 'aarch64')
+url='https://github.com/divarvian/bongocat-studio'
+license=('MIT' 'MPL-2.0')
+depends=('glibc' 'gcc-libs' 'libxkbcommon')
+makedepends=('cargo')
+optdepends=('obs-studio: display Bongo Cat via Browser Source')
+
+build() {
+    cd "$startdir/../.."
+    export CARGO_TARGET_DIR="$srcdir/target"
+    cargo build --release --locked -p bongocat-app
+}
+
+package() {
+    cd "$startdir/../.."
+    install -Dm755 "$srcdir/target/release/bongocat-studio" "$pkgdir/usr/bin/bongocat-studio"
+    install -Dm644 assets/icons/bongocat-studio.svg \
+        "$pkgdir/usr/share/icons/hicolor/scalable/apps/bongocat-studio.svg"
+    install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+    install -Dm644 THIRD_PARTY_LICENSES.md \
+        "$pkgdir/usr/share/licenses/$pkgname/THIRD_PARTY_LICENSES.md"
+    install -dm755 "$pkgdir/usr/share/applications"
+    sed 's|@BIN_PATH@|/usr/bin/bongocat-studio|g' assets/desktop/bongocat-studio.desktop.in \
+        > "$pkgdir/usr/share/applications/bongocat-studio.desktop"
+    chmod 644 "$pkgdir/usr/share/applications/bongocat-studio.desktop"
+}

@@ -1,0 +1,15 @@
+Package: bongocat-studio
+Version: @VERSION@
+Section: utils
+Priority: optional
+Architecture: @ARCH@
+Installed-Size: @INSTALLED_SIZE@
+Depends: libc6 (>= 2.35), libgcc-s1
+Recommends: libxkbcommon0
+Maintainer: Arvian <divarvian@users.noreply.github.com>
+Homepage: https://github.com/divarvian/bongocat-studio
+Description: Pure Rust desktop control center and OBS overlay server for Bongo Cat
+ BongoCat Studio is a standalone Pure Rust desktop application and built-in
+ OBS Studio Browser Source server for Linux (Wayland and X11). It features
+ Slanted, Flat Desk, and Classic visual modes, 10-finger ergonomic typing,
+ clickpad gestures, real-time OBS config sync, and privacy controls.

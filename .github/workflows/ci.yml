@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    name: Format, Clippy & Tests (Ubuntu 22.04)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache Cargo artifacts
+        uses: Swatinem/rust-cache@v2
+
+      - name: Verify Rust formatting
+        run: cargo fmt --all -- --check
+
+      - name: Run Clippy lints
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Run workspace unit & integration tests
+        run: cargo test --workspace
+
+      - name: Check embedded OBS JavaScript syntax
+        run: |
+          node --input-type=module --check < crates/bongocat-server/assets/overlay.js
+          node --input-type=module --check < crates/bongocat-server/assets/flat_desk.js
+          node --input-type=module --check < crates/bongocat-server/assets/slanted_desk.js

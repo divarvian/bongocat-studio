@@ -1,0 +1,29 @@
+[package]
+name = "bongocat-app"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description.workspace = true
+
+[[bin]]
+name = "bongocat-studio"
+path = "src/main.rs"
+
+[lints]
+workspace = true
+
+[dependencies]
+bongocat-core.workspace = true
+bongocat-input.workspace = true
+bongocat-server.workspace = true
+
+clap.workspace = true
+dirs.workspace = true
+iced.workspace = true
+ksni.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true

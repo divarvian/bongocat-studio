@@ -1,0 +1,65 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/bongocat-core",
+    "crates/bongocat-input",
+    "crates/bongocat-server",
+    "crates/bongocat-app",
+]
+default-members = ["crates/bongocat-app"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+authors = ["Arvian"]
+repository = "https://github.com/divarvian/bongocat-studio"
+description = "Pure Rust desktop control center and built-in OBS Browser Source server for Bongo Cat"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_debug_implementations = "warn"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+cast_precision_loss = "allow"
+cast_possible_truncation = "allow"
+cast_sign_loss = "allow"
+cast_possible_wrap = "allow"
+too_many_lines = "allow"
+struct_excessive_bools = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+must_use_candidate = "allow"
+return_self_not_must_use = "allow"
+float_cmp = "allow"
+similar_names = "allow"
+
+[workspace.dependencies]
+bongocat-core = { path = "crates/bongocat-core" }
+bongocat-input = { path = "crates/bongocat-input" }
+bongocat-server = { path = "crates/bongocat-server" }
+
+axum = "0.8"
+clap = { version = "4", features = ["derive"] }
+dirs = "6"
+evdev = { version = "0.12", features = ["tokio"] }
+futures-core = "0.3"
+iced = { version = "0.13", features = ["canvas", "svg", "tokio"] }
+ksni = { version = "0.3", features = ["blocking", "tokio"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time", "net", "signal", "io-util"] }
+tokio-stream = { version = "0.1", features = ["sync"] }
+toml = "0.8"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = "symbols"
+opt-level = 3

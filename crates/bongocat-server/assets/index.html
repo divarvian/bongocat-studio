@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BongoCat Studio — OBS Overlay</title>
+  <style>
+    :root {
+      --cat-scale: 1;
+      --bounce-scale-x: 1;
+      --bounce-scale-y: 1;
+      --bounce-y: 0px;
+      --bounce-rot: 0deg;
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.55);
+      --right-accent: #fb7185;
+    }
+
+    * { box-sizing: border-box; user-select: none; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      overflow: hidden;
+      font-family: system-ui, -apple-system, "Cantarell", "Inter", "Segoe UI", sans-serif;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #root {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      height: 100%;
+      padding: 8px;
+    }
+
+    #cat-wrap {
+      position: relative;
+      width: min(100%, 420px);
+      aspect-ratio: 500 / 277;
+      transform-origin: center 82%;
+      transform:
+        scale(var(--cat-scale))
+        translateY(var(--bounce-y))
+        rotate(var(--bounce-rot))
+        scaleX(var(--bounce-scale-x))
+        scaleY(var(--bounce-scale-y));
+      transition: transform 95ms cubic-bezier(0.22, 1.4, 0.36, 1);
+      will-change: transform;
+      filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.28));
+    }
+
+    #desk-wrap {
+      position: relative;
+      width: min(100%, 640px);
+      aspect-ratio: 640 / 436;
+      transform-origin: center 75%;
+      transform:
+        scale(var(--cat-scale))
+        translateY(var(--bounce-y))
+        rotate(var(--bounce-rot))
+        scaleX(var(--bounce-scale-x))
+        scaleY(var(--bounce-scale-y));
+      transition: transform 95ms cubic-bezier(0.22, 1.4, 0.36, 1);
+      will-change: transform;
+      filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.32));
+    }
+
+    #desk-wrap.slanted-ratio { aspect-ratio: 640 / 400; }
+    #cat-wrap.hidden, #desk-wrap.hidden { display: none; }
+    #cat-wrap.no-bounce, #desk-wrap.no-bounce { transition: none; }
+
+    .cat-frame {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .cat-frame.active { opacity: 1; }
+
+    .kb-cap {
+      fill: #f1f5f9;
+      stroke: #0f172a;
+      stroke-width: 1.3;
+      transition: fill 45ms ease, transform 45ms ease;
+    }
+    .kb-label {
+      fill: #1e293b;
+      font-weight: 700;
+      font-family: ui-monospace, SFMono-Regular, Menlo, system-ui, sans-serif;
+      pointer-events: none;
+    }
+    .kb-key.pressed { transform: translateY(1.8px); }
+    .kb-key.pressed .kb-cap {
+      fill: var(--accent);
+      filter: drop-shadow(0 0 5px var(--accent-glow));
+    }
+    .kb-key.pressed .kb-label { fill: #0b1120; }
+
+    #root.desk-dark .kb-cap { fill: #334155; stroke: #020617; }
+    #root.desk-dark .kb-label { fill: #e2e8f0; }
+    #root.desk-dark .kb-key.pressed .kb-cap { fill: var(--accent); }
+    #root.desk-dark .kb-key.pressed .kb-label { fill: #020617; }
+
+    .ptr-btn { fill: rgba(148, 163, 184, 0.14); transition: fill 55ms ease; }
+    .ptr-btn.mouse-btn { fill: #f8fafc; }
+    .ptr-btn-side { fill: #94a3b8; stroke: #111827; stroke-width: 1.4; }
+    .ptr-btn-left.active, .ptr-btn-side.active { fill: var(--accent); }
+    .ptr-btn-right.active { fill: var(--right-accent); }
+
+    .tp-ripple {
+      fill: rgba(56, 189, 248, 0.25);
+      stroke: var(--accent);
+      stroke-width: 2;
+      transition: opacity 70ms ease;
+    }
+    .tp-ripple.right-click { fill: rgba(251, 113, 133, 0.28); stroke: var(--right-accent); }
+    .tp-ripple.middle-click { fill: rgba(167, 139, 250, 0.30); stroke: #a78bfa; }
+
+    @keyframes zzzFloat {
+      0%, 100% { transform: translate(0, 0); opacity: 0.9; }
+      50% { transform: translate(4px, -7px); opacity: 0.45; }
+    }
+    .zzz-float { animation: zzzFloat 2.4s ease-in-out infinite; }
+    .zzz-2 { animation-delay: 0.6s; }
+
+    #hud-strip {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 32px;
+    }
+    #hud-strip.hidden { display: none; }
+
+    #kps-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 6px 13px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 14px;
+      line-height: 1;
+      letter-spacing: 0.02em;
+      font-variant-numeric: tabular-nums;
+      background: rgba(15, 18, 25, 0.84);
+      color: #f8fafc;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+      transition: transform 90ms ease;
+    }
+    #kps-badge.hidden { display: none; }
+    #kps-badge.pulse { transform: scale(1.06); }
+
+    .kps-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #4ade80;
+      box-shadow: 0 0 8px rgba(74, 222, 128, 0.8);
+    }
+    #kps-badge.offline .kps-dot { background: #f87171; box-shadow: 0 0 8px rgba(248, 113, 113, 0.8); }
+    #kps-badge.privacy .kps-dot { background: #fbbf24; box-shadow: 0 0 8px rgba(251, 191, 36, 0.8); }
+
+    .kps-meter {
+      width: 50px;
+      height: 6px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.16);
+    }
+    .kps-meter-fill {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #38bdf8, #a78bfa, #f472b6);
+      transition: width 90ms ease-out;
+    }
+
+    #key-hud { display: inline-flex; align-items: center; gap: 5px; }
+    #key-hud.hidden { display: none; }
+
+    .hud-pill {
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      font-weight: 800;
+      line-height: 1;
+      font-family: ui-monospace, SFMono-Regular, Menlo, system-ui, sans-serif;
+      background: rgba(15, 18, 25, 0.86);
+      color: #f8fafc;
+      border: 1.5px solid var(--accent);
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    }
+    .hud-pill.kind-right { border-color: var(--right-accent); color: #fecdd3; }
+    .hud-pill.kind-middle { border-color: #a78bfa; color: #ddd6fe; }
+    .hud-pill.kind-wheel { border-color: #34d399; color: #a7f3d0; }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <div id="cat-wrap" class="hidden" aria-label="Bongo Cat Classic">
+      <img class="cat-frame active" data-frame="0" src="/assets/bongo-both-up.svg" alt="">
+      <img class="cat-frame" data-frame="1" src="/assets/bongo-left-down.svg" alt="">
+      <img class="cat-frame" data-frame="2" src="/assets/bongo-right-down.svg" alt="">
+      <img class="cat-frame" data-frame="3" src="/assets/bongo-both-down.svg" alt="">
+      <img class="cat-frame" data-frame="4" src="/assets/bongo-sleeping.svg" alt="">
+    </div>
+
+    <div id="desk-wrap" aria-label="Bongo Cat Interactive Desk"></div>
+
+    <div id="hud-strip">
+      <div id="kps-badge">
+        <span class="kps-dot" aria-hidden="true"></span>
+        <span id="kps-value">0 KPS</span>
+        <span class="kps-meter" aria-hidden="true">
+          <span class="kps-meter-fill" id="kps-fill"></span>
+        </span>
+      </div>
+      <div id="key-hud"></div>
+    </div>
+  </div>
+
+  <script type="module" src="/assets/overlay.js"></script>
+</body>
+</html>

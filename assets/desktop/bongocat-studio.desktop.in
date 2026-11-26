@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=BongoCat Studio
+GenericName=Bongo Cat OBS Overlay Control Center
+Comment=Pure Rust desktop control center & built-in OBS Browser Source server for Bongo Cat
+Exec=@BIN_PATH@
+Icon=bongocat-studio
+Terminal=false
+Categories=AudioVideo;
+Keywords=bongo;cat;obs;overlay;streaming;keyboard;mouse;
+StartupNotify=true
+StartupWMClass=bongocat-studio
